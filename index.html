@@ -114,7 +114,11 @@ img{max-width:100%;display:block}
 .mascot figcaption{margin-top:8px;font-size:.74rem;line-height:1.55;color:#3D5542}
 .mascot figcaption .cap{display:block;white-space:nowrap;font-size:11px}
 .mascot figcaption strong{font-size:.88rem;color:#1B2B1E;font-family:"Zen Maru Gothic",sans-serif}
-@media(max-width:560px){.mascot{width:118px;padding:9px 7px 8px}}
+/* スマホでは2カラムをやめ、あいさつ文を全幅で先に表示し、けやきうさぎのカードは文の下に中央寄せで適度な大きさに */
+@media(max-width:699px){
+  .greeting-flex{flex-direction:column;gap:18px}
+  .mascot{width:200px;max-width:70vw;margin-inline:auto;padding:14px 12px 12px}
+}
 
 .grid2{display:grid;gap:14px}
 @media(min-width:700px){.grid2{grid-template-columns:1fr 1fr}}
