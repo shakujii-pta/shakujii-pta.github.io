@@ -182,11 +182,12 @@ time{font-size:.82rem;font-weight:700;color:var(--ink-2)}
 .article-body hr{border:none;border-top:2px solid var(--line);margin:.4em 0}
 .article-body ol{margin:0;padding-left:1.4em;display:grid;gap:.4em}
 .article-body figure{margin:0}
-.article-photo img,.gallery img{width:100%;height:100%;object-fit:cover;border-radius:16px}
-.article-photo img{height:auto;object-fit:initial}
-.gallery{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media(min-width:700px){.gallery{grid-template-columns:1fr 1fr 1fr}}
-.gallery figure{aspect-ratio:4/3;overflow:hidden;border-radius:16px}
+.article-photo img{width:100%;height:auto;border-radius:16px}
+/* ギャラリー：スマホは1カラム、PCは2カラム。画像は切り抜かず、元の縦横比のまま全体を表示する（チラシ等の縦長画像が途中で切れないように） */
+.gallery{display:grid;grid-template-columns:1fr;gap:14px;align-items:start}
+@media(min-width:700px){.gallery{grid-template-columns:1fr 1fr;gap:16px}}
+.gallery figure{border-radius:16px;overflow:hidden}
+.gallery img{width:100%;height:auto;border-radius:16px}
 .article-video{width:100%;border-radius:16px;background:#000;aspect-ratio:16/9}
 .file-link{display:flex;align-items:center;gap:12px;background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:14px 16px;text-decoration:none;color:var(--ink);font-weight:700;font-size:.95rem;word-break:break-all}
 .file-link svg{width:26px;height:26px;flex:none;color:var(--green-2)}
