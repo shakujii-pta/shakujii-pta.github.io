@@ -722,6 +722,14 @@ function sanitizeHtml(htmlStr){
     SVG:['viewBox','fill','stroke','stroke-width','stroke-linecap','stroke-linejoin','aria-hidden','class'],
     PATH:['d','fill','stroke','stroke-width','stroke-linecap','stroke-linejoin']
   };
+  /* 単一HTML書き出しでは本文の写真・動画・PDFが data URI で埋め込まれる。
+     スクリプトとして実行され得ないメディア形式の data URI だけは通し、それ以外は従来どおり除去する */
+  function isSafeDataUri(tag, name, v){
+    if (tag === 'IMG' && name === 'src') return /^data:image\/(png|jpe?g|gif|webp|avif);base64,/i.test(v);
+    if (tag === 'VIDEO' && name === 'src') return /^data:video\/(mp4|webm);base64,/i.test(v);
+    if (tag === 'A' && name === 'href') return /^data:application\/pdf;base64,/i.test(v);
+    return false;
+  }
   function clean(node){
     var children = Array.prototype.slice.call(node.childNodes);
     children.forEach(function(ch){
@@ -737,7 +745,11 @@ function sanitizeHtml(htmlStr){
       var allowed = ATTRS[ch.tagName] || ['class'];
       Array.prototype.slice.call(ch.attributes).forEach(function(at){
         if (allowed.indexOf(at.name) === -1){ ch.removeAttribute(at.name); return; }
-        if ((at.name === 'href' || at.name === 'src') && /^\s*(javascript|data|vbscript):/i.test(at.value)) ch.removeAttribute(at.name);
+        if (at.name === 'href' || at.name === 'src'){
+          var v = at.value.replace(/^[\s\u0000-\u0020]+/, '');
+          if (/^(javascript|vbscript):/i.test(v)) ch.removeAttribute(at.name);
+          else if (/^data:/i.test(v) && !isSafeDataUri(ch.tagName, at.name, v)) ch.removeAttribute(at.name);
+        }
       });
       clean(ch);
     });
