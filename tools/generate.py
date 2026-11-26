@@ -213,15 +213,17 @@ def escape_attr(s):
 
 
 def trim_rich_text(rts):
-    """rich_text 配列の前後にある改行を取り除く。
+    """rich_text 配列の前後の空白を現行サイトの形式に合わせて整える。
 
-    実例: paragraph の rich_text 先頭に "\\n" が含まれるケースがあるため、
-    変換前に先頭・末尾の改行（\\n / \\r）を除去する。
+    実データ照合（2026-11-26、全17記事）で確認した現行の規則:
+    - 先頭の空白・全角スペース・改行は除去（例: 第３弾の字下げ、開設の先頭改行）
+    - 末尾の空白・全角スペースは除去（例: 見学会の「⬇️　　　」、サポート委員）
+    - 末尾の改行は1つだけ残す（<br> になる。例: フリーマーケット報告）
     """
     items = [dict(rt) for rt in rts]
     while items:
         t = items[0].get("plain_text", "")
-        stripped = t.lstrip("\r\n")
+        stripped = t.lstrip(" 　\xa0\r\n")
         if stripped == t:
             break
         if stripped:
@@ -230,7 +232,9 @@ def trim_rich_text(rts):
         items.pop(0)
     while items:
         t = items[-1].get("plain_text", "")
-        stripped = t.rstrip("\r\n")
+        stripped = t.rstrip(" 　\xa0\r")
+        if stripped.endswith("\n"):
+            stripped = stripped.rstrip("\n") + "\n"
         if stripped == t:
             break
         if stripped:
@@ -467,8 +471,10 @@ class ArticleBuilder:
                 cells = row.get("table_row", {}).get("cells", [])
                 cell_html = " ".join(rich_text_to_html(c) for c in cells)
                 cell_plain = " ".join(rich_text_plain(c) for c in cells)
-                if cell_plain:
-                    self.text_segments.append(cell_plain)
+                # 空セルだけの行は出力しない（実例: 見学会レポート内の空テーブル）
+                if not cell_plain:
+                    continue
+                self.text_segments.append(cell_plain)
                 rows.append(f"<p>{cell_html}</p>")
             return "\n".join(rows) if rows else None
         if btype in ("bookmark", "embed"):
