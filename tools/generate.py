@@ -363,6 +363,17 @@ class ArticleBuilder:
 
     def convert_blocks(self, blocks):
         """ブロック列を HTML ブロック文字列のリストに変換する。"""
+        # 空段落は出力に残らず、画像の連続も分断しない（実例: 石特祭2026の
+        # お知らせは画像の間に空段落があり、現行では1つの gallery になる）
+        blocks = [
+            b for b in blocks
+            if not (
+                b.get("type") == "paragraph"
+                and not rich_text_plain(
+                    trim_rich_text(b.get("paragraph", {}).get("rich_text", []))
+                )
+            )
+        ]
         out = []
         i = 0
         while i < len(blocks):
