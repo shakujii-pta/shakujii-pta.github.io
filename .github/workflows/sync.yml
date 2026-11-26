@@ -1,0 +1,48 @@
+name: Notionニュース同期
+
+# 朝7:32 / 昼12:35 / 夕方20:06 (JST) に Notion の DB_ニュース と同期する
+on:
+  schedule:
+    - cron: '32 22 * * *'  # 07:32 JST
+    - cron: '35 3 * * *'   # 12:35 JST
+    - cron: '6 11 * * *'   # 20:06 JST
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: notion-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: チェックアウト
+        uses: actions/checkout@v4
+
+      - name: Python セットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Pillow インストール
+        run: pip install pillow
+
+      - name: サイト生成
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+        run: python tools/generate.py
+
+      - name: 変更があればコミット＆プッシュ
+        run: |
+          if [ -n "$(git status --porcelain -- index.html)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add index.html
+            git commit -m "ニュース同期: Notionの変更を反映"
+            git push
+          else
+            echo "変更なし: コミットしません"
+          fi
